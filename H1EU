@@ -1,0 +1,56 @@
+-- [ Hieu Hub - Offset COM Optimization ] --
+-- Supports all clients/executors (Delta, Codex, Fluxus, Arceus, etc.)
+-- Automatically executes on injection and reapplies after character Reset
+
+local Player = game:GetService("Players").LocalPlayer
+
+local function applyOffsetCOM(character)
+    if not character then return end
+    
+    -- Wait for key body parts to fully load (prevents errors on low-end devices)
+    local rootPart = character:WaitForChild("HumanoidRootPart", 10)
+    local humanoid = character:WaitForChild("Humanoid", 10)
+    
+    if not rootPart or not humanoid then return end
+
+    -- Function to scan and reconfigure Center of Mass
+    local function setupParts()
+        for _, part in ipairs(character:GetChildren()) do
+            if part:IsA("BasePart") then
+                -- Enable custom physical properties
+                part.CustomPhysicalProperties = PhysicalProperties.new(
+                    0.7,  -- Density (Default mass density)
+                    0.3,  -- Friction
+                    0.5,  -- Elasticity
+                    0.3,  -- FrictionWeight
+                    0.5   -- ElasticityWeight
+                )
+                
+                -- Lower the center of mass below the feet on main parts for ultimate balance
+                if part.Name == "HumanoidRootPart" or part.Name == "Torso" or part.Name == "UpperTorso" or part.Name == "LowerTorso" then
+                    part.CenterOfMassOffset = Vector3.new(0, -2.5, 0)
+                end
+            end
+        end
+    end
+
+    setupParts()
+    
+    -- In case the character changes outfits or loads new parts mid-game
+    character.ChildAdded:Connect(function(child)
+        if child:IsA("BasePart") then
+            task.wait(0.1)
+            setupParts()
+        end
+    end)
+end
+
+-- Run immediately for the current character upon script injection
+if Player.Character then
+    task.spawn(applyOffsetCOM, Player.Character)
+end
+
+-- Automatically re-run whenever the player Resets or Respawns
+Player.CharacterAdded:Connect(function(newCharacter)
+    task.spawn(applyOffsetCOM, newCharacter)
+end)
