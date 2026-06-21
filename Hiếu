@@ -1,0 +1,39 @@
+-- HĂ m thay Ä‘á»•i Offset COM cho nhĂ¢n váº­t
+local function applyOffsetCOM(character)
+    -- Äá»£i nhĂ¢n váº­t táº£i xong hoĂ n toĂ n
+    local rootPart = character:WaitForChild("HumanoidRootPart", 5)
+    local humanoid = character:WaitForChild("Humanoid", 5)
+    
+    if not rootPart or not humanoid then return end
+
+    -- Láº·p qua táº¥t cáº£ cĂ¡c bá»™ pháº­n (Part) cá»§a nhĂ¢n váº­t
+    for _, part in pairs(character:GetChildren()) do
+        if part:IsA("BasePart") then
+            -- Chá»‰nh thuá»™c tĂ­nh CustomPhysicalProperties Ä‘á»ƒ cĂ³ thá»ƒ sá»­a Center of Mass
+            local currentProps = part.CurrentPhysicalProperties
+            local density = currentProps and currentProps.Density or 0.7
+            local friction = currentProps and currentProps.Friction or 0.3
+            local elasticity = currentProps and currentProps.Elasticity or 0.5
+            
+            -- Trá»¥c Y Ä‘áº·t lĂ  -2 Ä‘á»ƒ kĂ©o trá»ng tĂ¢m xuá»‘ng dÆ°á»›i chĂ¢n (giĂºp siĂªu cĂ¢n báº±ng)
+            -- Báº¡n cĂ³ thá»ƒ chá»‰nh sá»­a Vector3.new(X, Y, Z) theo Ă½ muá»‘n
+            part.CustomPhysicalProperties = PhysicalProperties.new(density, friction, elasticity, 0.3, 0.5)
+            
+            -- Ăp dá»¥ng Ä‘á»™ lá»‡ch tĂ¢m khá»‘i lÆ°á»£ng (Offset COM) vĂ o HumanoidRootPart hoáº·c cĂ¡c Part chĂ­nh
+            if part.Name == "HumanoidRootPart" or part.Name == "Torso" or part.Name == "UpperTorso" then
+                part.CenterOfMassOffset = Vector3.new(0, -2.5, 0)
+            end
+        end
+    end
+end
+
+-- Cháº¡y ngay láº­p tá»©c cho nhĂ¢n váº­t hiá»‡n táº¡i
+local player = game.Players.LocalPlayer
+if player.Character then
+    applyOffsetCOM(player.Character)
+end
+
+-- Tá»± Ä‘á»™ng cháº¡y láº¡i má»—i khi báº¡n Reset (NhĂ¢n váº­t há»“i sinh má»›i)
+player.CharacterAdded:Connect(function(newCharacter)
+    applyOffsetCOM(newCharacter)
+end)
