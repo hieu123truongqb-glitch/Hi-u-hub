@@ -1,0 +1,121 @@
+-- [[ RED NON-CLIP MENU GUI ]] --
+local Players = game:Service("Players")
+local LocalPlayer = Players.LocalPlayer
+local RunService = game:Service("RunService")
+local TweenService = game:Service("TweenService")
+
+-- Tạo ScreenGui
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "RedNoclipMenu"
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.ResetOnSpawn = false
+
+-- Khởi tạo biến trạng thái
+local noclipActive = false
+local noclipConnection
+
+-- Giao diện Main Frame
+local MainFrame = Instance.new("Frame")
+MainFrame.Name = "MainFrame"
+MainFrame.Size = UDim2.new(0, 220, 0, 130)
+MainFrame.Position = UDim2.new(0.5, -110, 0.4, -65)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 25) -- Nền tối
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true -- Có thể kéo di chuyển trên màn hình
+MainFrame.Parent = ScreenGui
+
+local UICorner = Instance.new("UICorner")
+UICorner.CornerRadius = UDim.new(0, 8)
+UICorner.Parent = MainFrame
+
+-- Thanh Tiêu Đề (Header)
+local Header = Instance.new("Frame")
+Header.Name = "Header"
+Header.Size = UDim2.new(1, 0, 0, 35)
+Header.BackgroundColor3 = Color3.fromRGB(180, 0, 0) -- Màu đỏ chủ đạo
+Header.BorderSizePixel = 0
+Header.Parent = MainFrame
+
+local HeaderCorner = Instance.new("UICorner")
+HeaderCorner.CornerRadius = UDim.new(0, 8)
+HeaderCorner.Parent = Header
+
+-- Sửa lỗi bo góc phía dưới của Header để không đè lên nền tối
+local HeaderFix = Instance.new("Frame")
+HeaderFix.Size = UDim2.new(1, 0, 0, 10)
+HeaderFix.Position = UDim2.new(0, 0, 1, -10)
+HeaderFix.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+HeaderFix.BorderSizePixel = 0
+HeaderFix.Parent = Header
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 1, 0)
+Title.Text = "RED NOCLIP"
+Title.TextColor3 = Color3.fromRGB(255, 255, 255)
+Title.TextSize = 16
+Title.Font = Enum.Font.SourceSansBold
+Title.BackgroundTransparency = 1
+Title.Parent = Header
+
+-- Nút Bật/Tắt (Toggle Button)
+local ToggleButton = Instance.new("TextButton")
+ToggleButton.Name = "ToggleButton"
+ToggleButton.Size = UDim2.new(0, 180, 0, 45)
+ToggleButton.Position = UDim2.new(0.5, -90, 0.6, -10)
+ToggleButton.BackgroundColor3 = Color3.fromRGB(180, 0, 0)
+ToggleButton.Text = "Noclip: OFF"
+ToggleButton.TextColor3 = Color3.fromRGB(255, 255, 255)
+ToggleButton.TextSize = 16
+ToggleButton.Font = Enum.Font.SourceSansBold
+ToggleButton.BorderSizePixel = 0
+ToggleButton.Parent = MainFrame
+
+local ButtonCorner = Instance.new("UICorner")
+ButtonCorner.CornerRadius = UDim.new(0, 6)
+ButtonCorner.Parent = ToggleButton
+
+-- Thêm viền đỏ mờ (Glow nhẹ)
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(255, 0, 0)
+UIStroke.Thickness = 1.5
+UIStroke.Transparency = 0.5
+UIStroke.Parent = MainFrame
+
+--- CHỨC NĂNG NOCLIP ---
+local function ToggleNoclip()
+    noclipActive = not noclipActive
+    
+    if noclipActive then
+        -- Khi BẬT
+        ToggleButton.Text = "Noclip: ON"
+        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(0, 180, 0)}):Play() -- Chuyển xanh khi ON
+        
+        noclipConnection = RunService.Stepped:Connect(function()
+            if LocalPlayer.Character then
+                for _, part in pairs(LocalPlayer.Character:GetDescendants()) do
+                    if part:IsA("BasePart") and part.CanCollide == true then
+                        part.CanCollide = false
+                    end
+                end
+            end
+        end)
+    else
+        -- Khi TẮT
+        ToggleButton.Text = "Noclip: OFF"
+        TweenService:Create(ToggleButton, TweenInfo.new(0.2), {BackgroundColor3 = Color3.fromRGB(180, 0, 0)}):Play() -- Trả về màu đỏ
+        
+        if noclipConnection then
+            noclipConnection:Disconnect()
+        end
+    end
+end
+
+ToggleButton.MouseButton1Click:Connect(ToggleNoclip)
+
+-- Thông báo khi chạy thành công
+game:GetService("StarterGui"):SetCore("SendNotification", {
+    Title = "Red Noclip",
+    Text = "Script Loaded Successfully!",
+    Duration = 3
+})
